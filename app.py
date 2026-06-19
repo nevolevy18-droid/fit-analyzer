@@ -222,7 +222,8 @@ def moving_stats(df: pd.DataFrame, threshold: float):
     moving = df["speed_ms"] > threshold
     moving_time = float(dt[moving].sum())
     elapsed = float(df["elapsed_s"].iloc[-1] - df["elapsed_s"].iloc[0]) if len(df) else 0.0
-    total_km = float(df["distance_km"].max()) if len(df) and "distance_km" in df.columns else 0.0    avg_pace = (moving_time / 60.0) / total_km if (total_km > 0 and moving_time > 0) else np.nan
+    total_km = float(df["distance_km"].max()) if len(df) and "distance_km" in df.columns else 0.0
+    avg_pace = (moving_time / 60.0) / total_km if (total_km > 0 and moving_time > 0) else np.nan
     return moving_time, elapsed, total_km, avg_pace
 
 
