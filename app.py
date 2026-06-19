@@ -179,7 +179,7 @@ def prepare(df: pd.DataFrame):
 
     # --- Distance --------------------------------------------------------- #
     if "distance" in df.columns and pd.to_numeric(df["distance"], errors="coerce").notna().any():
-        df["distance_km"] = pd.to_numeric(df["distance"], errors="coerce") / 1000.0
+        df["distance_km"] = pd.to_numeric(df["distance"], errors="coerce").ffill() / 1000.0
         has_distance = True
     else:
         step = df["speed_ms"].fillna(0) * df["elapsed_s"].diff().fillna(0)
@@ -222,8 +222,7 @@ def moving_stats(df: pd.DataFrame, threshold: float):
     moving = df["speed_ms"] > threshold
     moving_time = float(dt[moving].sum())
     elapsed = float(df["elapsed_s"].iloc[-1] - df["elapsed_s"].iloc[0]) if len(df) else 0.0
-    total_km = float(df["distance_km"].iloc[-1]) if len(df) else 0.0
-    avg_pace = (moving_time / 60.0) / total_km if (total_km > 0 and moving_time > 0) else np.nan
+    total_km = float(df["distance_km"].max()) if len(df) and "distance_km" in df.columns else 0.0    avg_pace = (moving_time / 60.0) / total_km if (total_km > 0 and moving_time > 0) else np.nan
     return moving_time, elapsed, total_km, avg_pace
 
 
@@ -327,7 +326,7 @@ def build_master_chart(df: pd.DataFrame, x_col: str, x_label: str, metrics):
         fig.add_trace(
             go.Scatter(
                 x=df[x_col], y=df[m["col"]], name=m["label"], mode="lines",
-                line=dict(width=1.4, color=m["colour"]), connectgaps=False,
+                line=dict(width=1.4, color=m["colour"]), connectgaps=True,
                 hovertemplate=f"%{{y:.1f}} {m['unit']}<extra>{m['label']}</extra>",
             ),
             row=i, col=1,
